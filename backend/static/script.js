@@ -1,19 +1,22 @@
-async function sendMessage() {
+document.getElementById("chat-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
   const input = document.getElementById("input");
+  const chatbox = document.getElementById("chatbox");
   const text = input.value.trim();
+
   if (!text) return;
 
-  const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="msg user">You: ${text}</div>`;
+  chatbox.innerHTML += `<p class="msg user">You: ${text}</p>`;
   input.value = "";
 
-  const res = await fetch("/chat", {
+  const response = await fetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text })
+    body: JSON.stringify({ message: text }),
   });
-  const data = await res.json();
 
-  chat.innerHTML += `<div class="msg bot">Bot: ${data.reply}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
+  const data = await response.json();
+  chatbox.innerHTML += `<p class="msg bot">Bot: ${data.reply}</p>`;
+  chatbox.scrollTop = chatbox.scrollHeight;
+});

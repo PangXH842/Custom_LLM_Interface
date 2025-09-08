@@ -7,9 +7,12 @@
 </head>
 <body>
   <h2>LLM Chat</h2>
-  <div id="chat"></div>
-  <input id="input" type="text" placeholder="Type a message...">
-  <button onclick="sendMessage()">Send</button>
+  <div id="chatbox"></div>
+  <form id="chat-form">
+    <input id="input" type="text" placeholder="Type a message..."  />
+    <button type="submit">Send</button>
+  </form>
+
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
