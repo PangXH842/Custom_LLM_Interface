@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLM Chat</title>
+  <!-- Flask serves static files from /static -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>LLM Chat</h2>
+  <div id="chat"></div>
+  <input id="input" type="text" placeholder="Type a message...">
+  <button onclick="sendMessage()">Send</button>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
