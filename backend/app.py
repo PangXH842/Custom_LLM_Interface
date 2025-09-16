@@ -1,17 +1,22 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
-from openai import OpenAI  
-from huggingface_hub import InferenceClient
+from openai import OpenAI
 
 # Load .env variables
 load_dotenv()
 
 app = Flask(__name__)
 
-client = InferenceClient(
-    provider="featherless-ai",
-    api_key=os.environ["HF_TOKEN"],
+# --- CORRECTED CLIENT INITIALIZATION ---
+# Get the key and base_url from your .env file
+api_key = os.environ.get("PROXY_API_KEY")
+base_url = os.environ.get("PROXY_BASE_URL")
+
+# Configure the OpenAI client to point to the third-party service
+client = OpenAI(
+    api_key=api_key,
+    base_url=base_url
 )
 
 @app.route("/")
@@ -23,12 +28,14 @@ def chat():
     user_msg = request.json.get("message", "")
 
     try:
+        # The API call itself does not change, just the client config
+        # You can use the models mentioned in the image
         chat_completion = client.chat.completions.create(
-            model="mistralai/Mistral-7B-Instruct-v0.2",
+            model="gpt-3.5-turbo", # This model is listed as supported
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a friendly and helpful AI assistant. Respond to the user's request concisely."
+                    "content": "You are a friendly and helpful AI assistant."
                 },
                 {
                     "role": "user",
@@ -41,7 +48,7 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        print(f"An error occurred: {e}") # Good for debugging
+        print(f"An error occurred: {e}")
         return jsonify({"reply": f"Error: {e}"}), 500
 
 if __name__ == "__main__":

@@ -1,18 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>LLM Chat</title>
-  <!-- Flask serves static files from /static -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rent Advice Chatbot</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h2>LLM Chat</h2>
-  <div id="chatbox"></div>
-  <form id="chat-form">
-    <input id="input" type="text" placeholder="Type a message..."  />
-    <button type="submit">Send</button>
-  </form>
 
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h2>History</h2>
+    <div id="history"></div>
+    <button id="new-chat-btn" onclick="newChat()">+ New Chat</button>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <div id="header">Contract Chatbot</div>
+    <div id="chat-container"></div>
+    <div id="input-area">
+      <input type="file" id="file-input">
+      <button id="add-btn" onclick="document.getElementById('file-input').click()">➕</button>
+      <input type="text" id="user-input" placeholder="Send a message...">
+      <button id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+  
   <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>
