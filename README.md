@@ -1,6 +1,26 @@
 Project for 2025 GP8000 NTU
 
-Gemini tips (250809):
+## Singapore Housing & Rental Law Chatbot - AI in property rental laws in Singapore
+
+Our chatbot uses a core AI technique called Retrieval-Augmented Generation (RAG). Instead of just relying on a general AI model, it first retrieves highly relevant, accurate facts from our custom-built Knowledge Base on Singapore housing policies. Then, it uses a powerful Large Language Model (LLM) to formulate a natural, conversational answer based only on those trusted facts. This whole process uses Natural Language Processing (NLP) to understand questions and generate human-like replies, ensuring our answers are both smart and reliable.
+
+---
+
+### Notes 
+
+- 250921 
+    - The data stored in json files are probably not enough yet, needs more content. 
+    - Tried to crawl the official pages (HDB, URA etc) but not successful. 
+    - The `scraper.py` files are unused and untested yet. 
+    - TODO: 
+        - Make the chatbot support markdown format
+        - Enable it to process text files
+        - Replace manual knowledge base with official website data
+        - Add edit chat session title, edit/delete messages and delete chat functions
+
+---
+
+### Gemini tips (250809):
 
 Excellent! That's a fantastic and highly practical group project. Switching to a powerful base model like Mistral is a great starting point.
 
