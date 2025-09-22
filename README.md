@@ -6,6 +6,12 @@ Our chatbot uses a core AI technique called Retrieval-Augmented Generation (RAG)
 
 ---
 
+### Usage
+
+TBC
+
+---
+
 ### Notes 
 
 - 250921 
@@ -14,9 +20,12 @@ Our chatbot uses a core AI technique called Retrieval-Augmented Generation (RAG)
     - The `scraper.py` files are unused and untested yet. 
     - TODO: 
         - Make the chatbot support markdown format
-        - Enable it to process text files
+        - Enable it to process text files 
         - Replace manual knowledge base with official website data
         - Add edit chat session title, edit/delete messages and delete chat functions
+
+- 250922
+    - Added functions: process .txt files, delete and rename chat (double click on sidebar)
 
 ---
 

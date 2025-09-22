@@ -1,194 +1,230 @@
-// --- DOM Elements ---
+// static/script.js
+
+// --- DOM Elements (no changes) ---
 const chatContainer = document.getElementById("chat-container");
 const historyDiv = document.getElementById("history");
 const userInput = document.getElementById("user-input");
 const fileInput = document.getElementById("file-input");
+const sendBtn = document.getElementById("send-btn");
 
-// --- State Management ---
+// --- State Management (no changes) ---
 let conversations = [];
-let currentChatIndex = -1; // Use an index to track the active chat
+let currentChatIndex = -1;
 
-// --- Core Functions ---
-
-/**
- * Appends a message to the chat container.
- * @param {string} content - The HTML content of the message.
- * @param {string} sender - The sender ('user' or 'bot').
- */
-function appendMessage(content, sender) {
-  const messageWrapper = document.createElement("div");
-  messageWrapper.classList.add("message", sender);
-  // Use innerHTML to allow for simple formatting like the file link
-  messageWrapper.innerHTML = content;
-  chatContainer.appendChild(messageWrapper);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
+// --- Core Functions (no changes) ---
+function appendMessage(content, sender, isHtml = true) {
+    const messageWrapper = document.createElement("div");
+    messageWrapper.classList.add("message", sender);
+    if (isHtml) {
+        messageWrapper.innerHTML = content;
+    } else {
+        messageWrapper.textContent = content;
+    }
+    chatContainer.appendChild(messageWrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return messageWrapper;
 }
 
-/**
- * Appends a "Bot is typing..." indicator.
- * @returns {HTMLElement} The indicator element to be removed later.
- */
 function showTypingIndicator() {
-  const indicator = document.createElement("div");
-  indicator.classList.add("message", "bot", "typing-indicator");
-  indicator.innerHTML = "<span></span><span></span><span></span>";
-  chatContainer.appendChild(indicator);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
-  return indicator;
+    const indicator = document.createElement("div");
+    indicator.classList.add("message", "bot", "typing-indicator");
+    indicator.innerHTML = "<span></span><span></span><span></span>";
+    chatContainer.appendChild(indicator);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return indicator;
 }
 
-/**
- * Handles sending a message, including text and files.
- */
+// --- BUG FIX & LOGIC UPDATE in handleFileUpload ---
+async function handleFileUpload() {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (currentChatIndex === -1) {
+        startNewChat();
+    }
+
+    const feedbackMsg = appendMessage(`<i>Uploading ${file.name}...</i>`, 'user');
+    let finalFeedbackText = ""; // Variable to hold the final message text
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/upload', { method: 'POST', body: formData });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'File upload failed');
+        }
+        
+        finalFeedbackText = `✅ ${file.name} has been processed. You can now ask questions about it.`;
+        feedbackMsg.innerHTML = `✅ <i><b>${file.name}</b> has been processed. You can now ask questions about it.</i>`;
+        
+    } catch (error) {
+        finalFeedbackText = `❌ Error uploading ${file.name}: ${error.message}`;
+        feedbackMsg.innerHTML = `❌ Error uploading ${file.name}: ${error.message}`;
+    } finally {
+        // --- THIS IS THE BUG FIX ---
+        // Save the final, visible feedback message to the conversation history.
+        // We give it a role of "system" to differentiate it from user/bot messages.
+        conversations[currentChatIndex].messages.push({ 
+            role: "system", // Using a "system" role for file status messages
+            content: finalFeedbackText 
+        });
+        // -------------------------
+
+        fileInput.value = "";
+        updateHistory();
+    }
+}
+
+// --- Send Message function (no changes) ---
 async function sendMessage() {
-  const text = userInput.value.trim();
-  const file = fileInput.files[0];
-
-  if (!text && !file) return;
-
-  // Create a new chat if this is the first message
-  if (currentChatIndex === -1) {
-    startNewChat();
-  }
-  
-  let userMessageContent = "";
-  if (text) {
-      userMessageContent += text;
-  }
-  
-  // For this example, we just send the file name. 
-  // A full implementation would involve uploading the file first.
-  if (file) {
-      const fileNameText = `📎 File attached: <i>${file.name}</i>`;
-      userMessageContent += (userMessageContent ? `<br>${fileNameText}` : fileNameText);
-  }
-  
-  appendMessage(userMessageContent, "user");
-  conversations[currentChatIndex].messages.push({ role: "user", content: userMessageContent });
-  
-  // Clear inputs
-  userInput.value = "";
-  fileInput.value = "";
-
-  // Show typing indicator and fetch response
-  const typingIndicator = showTypingIndicator();
-
-  try {
-    const response = await fetch("/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }), // Sending only text to the backend for now
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // ... (This function remains the same as the previous version)
+    const text = userInput.value.trim();
+    if (!text) return;
+    sendBtn.disabled = true;
+    if (currentChatIndex === -1) { startNewChat(); }
+    appendMessage(text, 'user', false);
+    conversations[currentChatIndex].messages.push({ role: 'user', content: text });
+    userInput.value = "";
+    const typingIndicator = showTypingIndicator();
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text }),
+        });
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        const data = await response.json();
+        chatContainer.removeChild(typingIndicator);
+        appendMessage(data.reply, 'bot', false);
+        conversations[currentChatIndex].messages.push({ role: "assistant", content: data.reply });
+    } catch (error) {
+        console.error("Error fetching bot reply:", error);
+        chatContainer.removeChild(typingIndicator);
+        appendMessage("Sorry, I encountered an error. Please try again.", "bot");
+    } finally {
+        sendBtn.disabled = false;
+        updateHistory();
     }
-    
-    const data = await response.json();
-    const botReply = data.reply;
-
-    // Remove typing indicator and append the real reply
-    chatContainer.removeChild(typingIndicator);
-    appendMessage(botReply, "bot");
-    conversations[currentChatIndex].messages.push({ role: "assistant", content: botReply });
-
-  } catch (error) {
-    console.error("Error fetching bot reply:", error);
-    chatContainer.removeChild(typingIndicator);
-    appendMessage("Sorry, I encountered an error. Please try again.", "bot");
-  } finally {
-      updateHistory();
-  }
 }
 
-// --- History and Chat Management ---
 
-/**
- * Starts a new, empty chat session.
- */
+// --- HISTORY & CHAT MANAGEMENT (HEAVILY UPGRADED) ---
+
 function newChat() {
-  chatContainer.innerHTML = "";
-  currentChatIndex = -1; // Indicate that we are in a "pre-chat" state
+    chatContainer.innerHTML = "";
+    currentChatIndex = -1;
+    updateHistory(); // Deselect active item in history
 }
 
-/**
- * Creates a new chat array when the first message is sent.
- */
 function startNewChat() {
-  const newConversation = {
-    title: "New Chat",
-    messages: [],
-  };
-  conversations.unshift(newConversation); // Add to the beginning
-  currentChatIndex = 0; // The new chat is now active at the first index
+    const newConversation = { title: "New Chat", messages: [] };
+    conversations.unshift(newConversation);
+    currentChatIndex = 0;
 }
 
-/**
- * Loads a specific chat session into the main view.
- * @param {number} index - The index of the conversation to load.
- */
 function loadChat(index) {
-  if (index < 0 || index >= conversations.length) return;
-  
-  currentChatIndex = index;
-  const chat = conversations[index];
-  chatContainer.innerHTML = "";
-  chat.messages.forEach(msg => appendMessage(msg.content, msg.role));
-  updateHistory(); // To highlight the active chat
-}
-
-/**
- * Renders the chat history in the sidebar.
- */
-function updateHistory() {
-  historyDiv.innerHTML = "";
-  conversations.forEach((convo, index) => {
-    // Set title from the first user message if it's still "New Chat"
-    if (convo.title === "New Chat" && convo.messages.length > 0) {
-      const firstUserMsg = convo.messages.find(m => m.role === 'user');
-      if (firstUserMsg) {
-          // A simple way to clean up content for a title
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = firstUserMsg.content;
-          convo.title = tempDiv.textContent.substring(0, 30) + "...";
-      }
-    }
-
-    const item = document.createElement("div");
-    item.classList.add("history-item");
-    if (index === currentChatIndex) {
-        item.classList.add("active");
-    }
-    item.textContent = convo.title;
-    item.onclick = () => loadChat(index);
-    historyDiv.appendChild(item);
-  });
-  saveConversations();
-}
-
-// --- Local Storage ---
-
-function saveConversations() {
-  localStorage.setItem("chatConversations", JSON.stringify(conversations));
-}
-
-function loadConversations() {
-  const saved = localStorage.getItem("chatConversations");
-  if (saved) {
-    conversations = JSON.parse(saved);
+    if (index < 0 || index >= conversations.length) return;
+    currentChatIndex = index;
+    const chat = conversations[index];
+    chatContainer.innerHTML = "";
+    chat.messages.forEach(msg => {
+        // Display "system" (file upload) messages differently if desired
+        if (msg.role === 'system') {
+            appendMessage(`<i>${msg.content}</i>`, 'system');
+        } else {
+            appendMessage(msg.content, msg.role, false);
+        }
+    });
     updateHistory();
-  }
 }
 
-// --- Event Listeners ---
+function updateHistory() {
+    historyDiv.innerHTML = "";
+    conversations.forEach((convo, index) => {
+        if (convo.title === "New Chat" && convo.messages.length > 0) {
+            const firstUserMsg = convo.messages.find(m => m.role === 'user');
+            if (firstUserMsg) {
+                convo.title = firstUserMsg.content.substring(0, 20) + "...";
+            }
+        }
 
-// Handle 'Enter' key press in the input field
+        const item = document.createElement("div");
+        item.classList.add("history-item");
+        if (index === currentChatIndex) {
+            item.classList.add("active");
+        }
+        
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = convo.title;
+        titleSpan.style.flexGrow = "1"; // Allow title to take up space
+        item.appendChild(titleSpan);
+
+        // --- NEW: Add Delete Button ---
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "×";
+        deleteBtn.classList.add("delete-chat-btn");
+        deleteBtn.onclick = (event) => {
+            event.stopPropagation(); // Prevent loading the chat when deleting
+            deleteChat(index);
+        };
+        item.appendChild(deleteBtn);
+
+        // --- NEW: Add Rename Functionality ---
+        item.ondblclick = () => renameChat(index);
+        item.onclick = () => loadChat(index);
+        
+        historyDiv.appendChild(item);
+    });
+    saveConversations();
+}
+
+// --- NEW: Rename Chat Function ---
+function renameChat(index) {
+    const convo = conversations[index];
+    const newTitle = prompt("Enter a new title for this chat:", convo.title);
+    if (newTitle && newTitle.trim() !== "") {
+        conversations[index].title = newTitle.trim();
+        updateHistory();
+    }
+}
+
+// --- NEW: Delete Chat Function ---
+function deleteChat(index) {
+    if (confirm("Are you sure you want to delete this chat?")) {
+        conversations.splice(index, 1);
+        // If the deleted chat was the active one, clear the view
+        if (index === currentChatIndex) {
+            newChat();
+        } else {
+            // Adjust currentChatIndex if a preceding chat was deleted
+            if (index < currentChatIndex) {
+                currentChatIndex--;
+            }
+            updateHistory();
+        }
+    }
+}
+
+
+// --- Local Storage (no changes) ---
+function saveConversations() {
+    localStorage.setItem("chatConversations", JSON.stringify(conversations));
+}
+function loadConversations() {
+    const saved = localStorage.getItem("chatConversations");
+    if (saved) {
+        conversations = JSON.parse(saved);
+        updateHistory();
+    }
+}
+
+// --- Event Listeners (no changes) ---
 userInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault(); // Prevent new line in input
-    sendMessage();
-  }
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
 });
-
-// Load chats from local storage when the page loads
 document.addEventListener("DOMContentLoaded", loadConversations);

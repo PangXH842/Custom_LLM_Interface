@@ -20,7 +20,7 @@
     <div id="header">Contract Chatbot</div>
     <div id="chat-container"></div>
     <div id="input-area">
-      <input type="file" id="file-input">
+      <input type="file" id="file-input" onchange="handleFileUpload()">
       <button id="add-btn" onclick="document.getElementById('file-input').click()">➕</button>
       <input type="text" id="user-input" placeholder="Send a message...">
       <button id="send-btn" onclick="sendMessage()">➤</button>

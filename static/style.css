@@ -160,3 +160,37 @@ button {
 input[type="file"] {
     display: none;
 }
+
+.history-item {
+    /* Make the history item a flex container to position content */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #6074a4;
+}
+
+.history-item.active {
+    background: #4a5d8a;
+    font-weight: bold;
+}
+
+.delete-chat-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    opacity: 0.6;
+    padding: 0 5px;
+    border-radius: 4px;
+}
+
+.delete-chat-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+}
