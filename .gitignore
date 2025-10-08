@@ -11,5 +11,8 @@ node_modules/
 .env
 *.env
 
+# Local
+backend/data/uploads/
+
 # To be developed
 # backend/scripts/scraper*.py
