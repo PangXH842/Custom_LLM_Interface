@@ -1,17 +1,17 @@
 // static/script.js
 
-// --- DOM Elements (no changes) ---
+// --- DOM Elements ---
 const chatContainer = document.getElementById("chat-container");
 const historyDiv = document.getElementById("history");
 const userInput = document.getElementById("user-input");
 const fileInput = document.getElementById("file-input");
 const sendBtn = document.getElementById("send-btn");
 
-// --- State Management (no changes) ---
+// --- State Management ---
 let conversations = [];
 let currentChatIndex = -1;
 
-// --- Core Functions (no changes) ---
+// --- Core Functions ---
 function appendMessage(content, sender, isHtml = true) {
     const messageWrapper = document.createElement("div");
     messageWrapper.classList.add("message", sender);
@@ -56,12 +56,12 @@ async function handleFileUpload() {
             throw new Error(result.error || 'File upload failed');
         }
         
-        finalFeedbackText = `✅ ${file.name} has been processed. You can now ask questions about it.`;
-        feedbackMsg.innerHTML = `✅ <i><b>${file.name}</b> has been processed. You can now ask questions about it.</i>`;
+        finalFeedbackText = `${file.name} has been processed. You can now ask questions about it.`;
+        feedbackMsg.innerHTML = `<i><b>${file.name}</b> has been processed. You can now ask questions about it.</i>`;
         
     } catch (error) {
-        finalFeedbackText = `❌ Error uploading ${file.name}: ${error.message}`;
-        feedbackMsg.innerHTML = `❌ Error uploading ${file.name}: ${error.message}`;
+        finalFeedbackText = `Error uploading ${file.name}: ${error.message}`;
+        feedbackMsg.innerHTML = `Error uploading ${file.name}: ${error.message}`;
     } finally {
         // --- THIS IS THE BUG FIX ---
         // Save the final, visible feedback message to the conversation history.
@@ -77,7 +77,7 @@ async function handleFileUpload() {
     }
 }
 
-// --- Send Message function (no changes) ---
+// --- Send Message function ---
 async function sendMessage() {
     // ... (This function remains the same as the previous version)
     const text = userInput.value.trim();
@@ -208,7 +208,7 @@ function deleteChat(index) {
 }
 
 
-// --- Local Storage (no changes) ---
+// --- Local Storage ---
 function saveConversations() {
     localStorage.setItem("chatConversations", JSON.stringify(conversations));
 }
@@ -220,7 +220,7 @@ function loadConversations() {
     }
 }
 
-// --- Event Listeners (no changes) ---
+// --- Event Listeners ---
 userInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         event.preventDefault();

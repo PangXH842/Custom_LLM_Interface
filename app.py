@@ -1,5 +1,3 @@
-# proj/app.py
-
 from flask import Flask, request, jsonify, render_template, session
 import os
 import uuid # Make sure uuid is imported
@@ -13,15 +11,15 @@ from backend.scripts.rag_handler import create_system_prompt, index_uploaded_fil
 load_dotenv()
 
 # --- App Configuration ---
-app = Flask(__name__) # Use the default paths for templates and static
-app.config['SECRET_KEY'] = os.urandom(24) # Absolutely required for sessions
+app = Flask(__name__) 
+app.config['SECRET_KEY'] = os.urandom(24) 
 
 # Configure the upload folder path correctly
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'backend', 'data', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# --- API SETUP (no changes) ---
+# --- API SETUP ---
 api_key = os.environ.get("HF_TOKEN")
 base_url = os.environ.get("BASE_URL")
 model_name = "meta-llama/Llama-3.1-8B-Instruct:nebius"
@@ -29,10 +27,8 @@ client = OpenAI(api_key=api_key, base_url=base_url)
 
 
 # --- FLASK ROUTES ---
-
 @app.route("/")
 def index():
-    # ** THE FIX **: Create a unique 'library card' the moment the user arrives.
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
         print(f"New session created: {session['session_id']}")
@@ -41,14 +37,12 @@ def index():
 @app.route("/chat", methods=["POST"])
 def chat():
     user_msg = request.json.get("message", "")
-    # ** THE FIX **: Get the user's existing 'library card'
     session_id = session.get('session_id')
     if not session_id:
         return jsonify({"error": "Session not found. Please refresh the page."}), 400
 
-    print(f"Chat request for session: {session_id}") # Good for debugging
+    print(f"Chat request for session: {session_id}") 
 
-    # Pass the session_id to the RAG handler
     system_prompt = create_system_prompt(user_msg, session_id)
 
     try:
@@ -68,12 +62,11 @@ def chat():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # ** THE FIX **: Get the user's existing 'library card'
     session_id = session.get('session_id')
     if not session_id:
         return jsonify({"error": "Session not found. Please refresh the page."}), 400
 
-    print(f"Upload request for session: {session_id}") # Good for debugging
+    print(f"Upload request for session: {session_id}") 
 
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400

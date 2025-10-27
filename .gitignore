@@ -13,6 +13,7 @@ node_modules/
 
 # Local
 backend/data/uploads/
+backend/data/chroma_db_old/
 
 # To be developed
 # backend/scripts/scraper*.py

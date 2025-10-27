@@ -8,7 +8,16 @@ Our chatbot uses a core AI technique called Retrieval-Augmented Generation (RAG)
 
 ### Usage
 
-TBC
+1. Run `pip install -r requirements.txt` to install the required packages
+2. Store your Huggingface API key into a file named `.env` in the project's root folder:
+
+```
+HF_TOKEN = "hf_xxx"             # <= Your Huggingface API key
+BASE_URL = "https://router.huggingface.co/v1"
+```
+
+3. Run `python proj/app.py` to activate the server
+4. Go to `http://127.0.0.1:5001/` to use the chatbot
 
 ---
 
